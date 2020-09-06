@@ -1,0 +1,228 @@
+// CRUD MongoDB
+
+//C-create -> insert()
+db.firstCollection.insert({name: "You"})
+
+db.firstCollection.insert({
+    name: "Razu",
+    hometown: {
+        city: "Razuville",
+        country: "Razuland"
+    },
+    hobbies: ["Razu-ing", "Razu Surfing", "Razu Cooking"]
+})
+
+//R-retrieve -> find()
+db.firstCollection.find({})
+
+//spot check 1
+
+db.firstCollection.insert({
+    currentBalance: 20000,
+    accountDetails:{
+        fullName:"roi ben ishai",
+        accountNumber: 1
+    }
+})
+
+db.firstCollection.find({"currentBalance": {
+    $gte :20000
+}})
+
+
+db.firstCollection.insert({ name: "Louise", salary: 1200 })
+db.firstCollection.insert({ name: "Rayna", salary: 2300 })
+db.firstCollection.insert({ name: "Soren", salary: 1500 })
+db.firstCollection.insert({ name: "Loreli", salary: 800 })
+db.firstCollection.insert({ name: "Milo", salary: 950 })
+db.firstCollection.insert({ name: "Brendon", salary: 1100 })
+
+db.firstCollection.find({
+    name: "Milo"
+})
+
+db.firstCollection.find({
+    salary:{
+        $gt: 1200
+    }
+})
+
+db.firstCollection.find(    //query starts here
+    {                       //filter starts here
+        salary: {
+            $gt: 1200
+        }
+    },                      //filter ends here
+    {                       //projection starts here
+        name: 1,
+        _id: 0
+    }                       //projection ends here
+)                           //query ends here
+
+
+//spot check 2
+
+db.firstCollection.find({
+    name: "Razu"
+},
+{
+    "hometown.city":1,
+    _id:0
+}
+)
+
+
+// U- update -> update()
+//this case below wil ovveride the exsist document
+// db.firstCollection.update(
+//     {
+//         name: "Milo"        //filter
+//     },
+//     {
+//         lastName: "Shakers" //update
+//     }
+// )
+
+//the code below will update the document by using $set
+db.firstCollection.update(
+    {
+        name: "Milo"
+    },
+    {
+        $set:
+            {
+                lastName: "Shakers"
+            }
+    }
+)
+
+db.firstCollection.find({name: "Milo"})
+
+
+//spot check 4
+db.firstCollection.update(
+    {
+        name: "Loreli"
+    },
+    {
+        $set:{
+            salary:1050
+        }
+    })
+db.firstCollection.find({name: "Loreli"})
+
+//D-delete - remove()
+//delete all the document that match the query
+db.firstCollection.remove({
+    name: "Rayna"
+})
+
+//delete onlu one , the first doc that its find
+db.firstCollection.remove(  
+    {
+        name: "Rayna"
+    }, 
+    true
+)
+
+// more mongoDB commands 
+// pushing value into an array using $push
+db.firstCollection.update(  
+    {name: "Razu"}, 
+    {$push: {
+        hobbies: "Razu-Ball" // pushing "Razu-Ball" into the hobbies arry
+    }}
+)
+
+db.firstCollection.find({name: "Razu"})
+
+//spot check 4
+db.firstCollection.update(
+    {
+        name:"Soren"
+    },
+    {
+        $set:{
+            dreams:[]
+        }
+    }
+    )
+
+db.firstCollection.update(
+ {
+        name:"Soren"
+    },
+    {
+        $push:{
+           dreams: {
+            $each: ["Being like Razu", "Breaking the glass floor"]
+             }
+        }
+    }
+)
+
+db.firstCollection.find({name:"Soren"})
+
+
+//removing data from an array
+
+// removing selected value using $pull
+db.firstCollection.update(  
+    {name: "Soren"}, 
+    {$pull: {
+        dreams: "Being like Razu"
+    }}
+)
+//removing the last value using $pop
+db.firstCollection.update(  
+    {name: "Soren"}, 
+    {$pop: {
+        dreams: 1
+    }}
+)
+// 1 means remove the last item. we can use -1 for the first item
+
+//$and[] if we wand quering by multyple conditions
+db.firstCollection.find({
+    $and:[
+        {salary: {$gt: 1000}},
+        {salary: {$lt: 1500}}
+    ]
+})
+
+db.firstCollection.insert({name: "Spore", hobbies: ["Running", "Hip Hop", "Basketball", "Soccer"]})
+db.firstCollection.insert({name: "Daniel", hobbies: ["Hip Hop", "Ballet", "Salsa", "Running"]})
+db.firstCollection.insert({name: "Beckie", hobbies: ["Reading", "Running", "Hip Hop", "Writing", "Debate", "Philosophy"]})
+db.firstCollection.insert({name: "Dugg", hobbies: ["Philosophy", "Psychology"]})
+
+db.firstCollection.find({
+    hobbies: "Philosophy"
+})
+
+db.firstCollection.remove({})
+
+db.firstCollection.insert({ name: "Louise", dept: "Finance", salary: 1200,currentEmployee:true })
+db.firstCollection.insert({ name: "Rayna", dept: "R&D", salary: 2300,currentEmployee:true })
+db.firstCollection.insert({ name: "Soren", dept: "Finance", salary: 1500 ,currentEmployee:false })
+db.firstCollection.insert({ name: "Loreli", dept: "Sales", salary: 800 ,currentEmployee:false })
+db.firstCollection.insert({ name: "Milo", dept: "Sales", salary: 950,currentEmployee:true })
+db.firstCollection.insert({ name: "Brendon", dept: "Finance", salary: 1100 ,currentEmployee:false })
+
+
+//sum all salary of dept by group them
+db.firstCollection.aggregate([
+                     { $group: 
+                        { _id: "$dept", 
+                        totalSalaries: { $sum: "$salary" } } }
+                   ])
+
+
+//spot check 5
+
+db.firstCollection.aggregate([
+                        {$match: {currentEmployee:true}},
+                        {"$group": {
+                            _id:"$dept",
+                             totalSalaries: { $sum: "$salary" }}
+                             },
+                             { $sort: { totalSalaries: -1 } }])
